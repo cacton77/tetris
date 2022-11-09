@@ -159,6 +159,8 @@ class TetrisEnv(gym.Env):
 
         # pick a new piece
         self.state.next_piece = self._get_random_piece()
+        # for testing, only use O
+        # self.state.next_piece = 0
         return self.state.copy(), self._get_reward(), False, {}
 
     def reset(self):
@@ -169,11 +171,49 @@ class TetrisEnv(gym.Env):
         field = np.zeros((self.n_rows, self.n_cols), dtype=np.int)
         top = np.zeros(self.n_cols, dtype=np.int)
         next_piece = self._get_random_piece()
+        # for testing, only use O
+        # next_piece = 0
 
         self.state = TetrisState(field, top, next_piece, lost, turn, cleared)
         return self.state.copy()
 
-    def render(self, mode='ascii'):
+    def render(self, mode='ascii', rot=0, trans=0):
+        print('\nThe next piece:')
+        print('rotation = {}'.format(rot))
+        if self.state.next_piece == 0:
+            if rot == 0:
+                print(' * *\n * *')
+        elif self.state.next_piece == 1:
+            if rot == 0:
+                print(' *\n *\n *\n *')
+            elif rot == 1:
+                print(' * * * *')
+        elif self.state.next_piece == 2:
+            if rot == 0:
+                print(' *\n *\n * *')
+            elif rot == 1:
+                print(' * * *\n *')
+        elif self.state.next_piece == 3:
+            if rot == 0:
+                print('   *\n   *\n * *')
+            elif rot == 1:
+                print(' *\n * * *')
+        elif self.state.next_piece == 4:
+            if rot == 0:
+                print(' *\n * *\n *')
+            elif rot == 1:
+                print(' * * *\n   *')
+        elif self.state.next_piece == 5:
+            if rot == 0:
+                print('   * *\n * *')
+            elif rot == 1:
+                print(' *\n * *\n   *')
+        elif self.state.next_piece == 6:
+            if rot == 0:
+                print(' * *\n  * *')
+            elif rot == 1:
+                print(' *\n * *\n *')
+
         print('\nThe wall:')
         print('-' * (2 * self.n_cols + 1))
         for r in range(self.n_rows - 1, -1, -1):
@@ -187,21 +227,7 @@ class TetrisEnv(gym.Env):
             print(render_string)
         print('-' * (2 * self.n_cols + 1))
 
-        print('\nThe next piece:')
-        if self.state.next_piece == 0:
-            print('**\n**')
-        elif self.state.next_piece == 1:
-            print('****')
-        elif self.state.next_piece == 2:
-            print('*\n*\n**')
-        elif self.state.next_piece == 3:
-            print(' *\n *\n**')
-        elif self.state.next_piece == 4:
-            print(' * \n***')
-        elif self.state.next_piece == 5:
-            print(' **\n**')
-        elif self.state.next_piece == 6:
-            print('**\n **')
+
 
     def close(self):
         pass
@@ -217,7 +243,8 @@ class TetrisEnv(gym.Env):
         reward function
         """
         # TODO: change it to your own choice of rewards
-        return 0.0
+        reward = self.cleared_current_turn
+        return reward
 
     def get_actions(self):
         """
