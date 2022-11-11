@@ -18,34 +18,24 @@ class TetrisState:
     the tetris state
     """
     def __init__(self, field, top, next_piece, lost, turn, cleared):
-        # the board configuration
-        self.field = field
-        # the top position
-        self.top = top
-        # the piece ID of the next piece
-        self.next_piece = next_piece
-        # whether the game has lost
-        self.lost = lost
-        # the current turn
-        self.turn = turn
-        # the number of rows cleared so far
-        self.cleared = cleared
+        self.field = field # the board configuration
+
+        self.top = top # the top position
+
+        self.next_piece = next_piece # the piece ID of the next piece
+
+        self.lost = lost # whether the game has lost
+    
+        self.turn = turn # the current turn
+    
+        self.cleared = cleared # the number of rows cleared so far
 
     def copy(self):
-        return TetrisState(
-            self.field.copy(),
-            self.top.copy(),
-            self.next_piece,
-            self.lost,
-            self.turn,
-            self.cleared
-        )
+        return TetrisState(self.field.copy(), self.top.copy(), self.next_piece, self.lost, self.turn, self.cleared)
 
 
 class TetrisEnv(gym.Env):
-    metadata = {
-        'render.modes': ['ascii']
-    }
+    metadata = {'render.modes': ['ascii']}
 
     def __init__(self):
         self.n_cols = 10
@@ -55,7 +45,8 @@ class TetrisEnv(gym.Env):
         # the next several lists define the piece vocabulary in detail
         # width of the pieces [piece ID][orientation]
         # pieces: O, I, L, J, T, S, Z
-        self.piece_orients = [1, 2, 4, 4, 4, 2, 2]
+        self.piece_orients = [1, 2, 4, 4, 4, 2, 2] # Number of orientation
+        
         self.piece_width = [
             [2],
             [1, 4],
@@ -96,9 +87,11 @@ class TetrisEnv(gym.Env):
 
         # initialize legal moves for all pieces
         self.legal_moves = []
-        for i in range(self.n_pieces):
+
+        for i in range(self.n_pieces): # Loop through all possible pieces 0 to 6
             piece_legal_moves = []
-            for j in range(self.piece_orients[i]):
+
+            for j in range(self.piece_orients[i]): # Possible orientation for the corresponding piece
                 for k in range(self.n_cols + 1 - self.piece_width[i][j]):
                     piece_legal_moves.append([j, k])
             self.legal_moves.append(piece_legal_moves)
@@ -121,10 +114,7 @@ class TetrisEnv(gym.Env):
         self.state.turn += 1
 
         # height of the field
-        height = max(
-            self.state.top[slot+c] - self.piece_bottom[self.state.next_piece][orient][c]
-            for c in range(self.piece_width[self.state.next_piece][orient])
-        )
+        height = max(self.state.top[slot+c] - self.piece_bottom[self.state.next_piece][orient][c] for c in range(self.piece_width[self.state.next_piece][orient]))
 
         # check if game ended
         if height + self.piece_height[self.state.next_piece][orient] >= self.n_rows:
@@ -159,8 +149,6 @@ class TetrisEnv(gym.Env):
 
         # pick a new piece
         self.state.next_piece = self._get_random_piece()
-        # for testing, only use O
-        # self.state.next_piece = 0
         return self.state.copy(), self._get_reward(), False, {}
 
     def reset(self):
@@ -168,56 +156,99 @@ class TetrisEnv(gym.Env):
         turn = 0
         cleared = 0
 
-        field = np.zeros((self.n_rows, self.n_cols), dtype=np.int)
-        top = np.zeros(self.n_cols, dtype=np.int)
+        field = np.zeros((self.n_rows, self.n_cols), dtype=int)
+        top = np.zeros(self.n_cols, dtype=int)
         next_piece = self._get_random_piece()
-        # for testing, only use O
-        # next_piece = 0
 
         self.state = TetrisState(field, top, next_piece, lost, turn, cleared)
         return self.state.copy()
 
     def render(self, mode='ascii', rot=0, trans=0):
+        print('Rotation = {}'.format(rot))
         print('\nThe next piece:')
-        print('rotation = {}'.format(rot))
         if self.state.next_piece == 0:
-            if rot == 0:
-                print(' * *\n * *')
+            if rot == 0: 
+                print('**\n**')
+                print('\nNumber of possible orientation: {}'.format(self.piece_orients[0]))
+                print('self.state.next_piece: ', self.state.next_piece)
+                
         elif self.state.next_piece == 1:
             if rot == 0:
-                print(' *\n *\n *\n *')
+                print('*\n*\n*\n*')
+                print('Number of possible orientation: {}'.format(self.piece_orients[1]))
+                print('self.state.next_piece: ', self.state.next_piece)
             elif rot == 1:
-                print(' * * * *')
+                print('* * * *')
+                print('self.state.next_piece: ', self.state.next_piece)
+
         elif self.state.next_piece == 2:
             if rot == 0:
-                print(' *\n *\n * *')
+                print('*\n*\n* *')
+                print('Number of possible orientation: {}'.format(self.piece_orients[2]))
+                print('self.state.next_piece: ', self.state.next_piece)
             elif rot == 1:
-                print(' * * *\n *')
+                print('* * *\n*')
+                print('self.state.next_piece: ', self.state.next_piece)
+            elif rot == 2:
+                print('* *\n  *\n  *')
+                print('self.state.next_piece: ', self.state.next_piece)
+            elif rot ==3:
+                print('    *\n* * *')
+                print('self.state.next_piece: ', self.state.next_piece)
+
         elif self.state.next_piece == 3:
             if rot == 0:
-                print('   *\n   *\n * *')
+                print('  *\n  *\n* *')
+                print('Number of possible orientation: {}'.format(self.piece_orients[3]))
+                print('self.state.next_piece: ', self.state.next_piece)
             elif rot == 1:
-                print(' *\n * * *')
+                print('*\n* * *')
+                print('self.state.next_piece: ', self.state.next_piece)
+            elif rot == 2:
+                print('* *\n*\n*')
+                print('self.state.next_piece: ', self.state.next_piece)
+            elif rot == 3:
+                print('* * *\n    *')
+                print('self.state.next_piece: ', self.state.next_piece)
+
         elif self.state.next_piece == 4:
             if rot == 0:
-                print(' *\n * *\n *')
+                print('*\n* *\n*')
+                print('Number of possible orientation: {}'.format(self.piece_orients[4]))
+                print('self.state.next_piece: ', self.state.next_piece)
             elif rot == 1:
-                print(' * * *\n   *')
+                print('* * *\n  *  ')
+                print('self.state.next_piece: ', self.state.next_piece)
+            elif rot == 2:
+                print('  *\n* *\n  *')
+                print('self.state.next_piece: ', self.state.next_piece)
+            elif rot == 3:
+                print('  *  \n* * *')
+                print('self.state.next_piece: ', self.state.next_piece)
+                
         elif self.state.next_piece == 5:
             if rot == 0:
-                print('   * *\n * *')
-            elif rot == 1:
-                print(' *\n * *\n   *')
+                print('  * *\n* *  ')
+                print('Number of possible orientation: {}'.format(self.piece_orients[5]))
+                print('self.state.next_piece: ', self.state.next_piece)
+            elif rot== 1:
+                print('*  \n* *\n  *')
+                print('self.state.next_piece: ', self.state.next_piece)
+
         elif self.state.next_piece == 6:
             if rot == 0:
-                print(' * *\n  * *')
+                print('* *\n  * *')
+                print('Number of possible orientation: {}'.format(self.piece_orients[6]))
+                print('self.state.next_piece: ', self.state.next_piece)
             elif rot == 1:
-                print(' *\n * *\n *')
+                print('  *\n* *\n*  ')
+                print('self.state.next_piece: ', self.state.next_piece)
 
-        print('\nThe wall:')
+        print('\nThe great wall:')
         print('-' * (2 * self.n_cols + 1))
         for r in range(self.n_rows - 1, -1, -1):
             render_string = '|'
+            
             for c in range(self.n_cols):
                 if self.state.field[r, c] > 0:
                     render_string += '*|'
@@ -226,8 +257,6 @@ class TetrisEnv(gym.Env):
             render_string += ''
             print(render_string)
         print('-' * (2 * self.n_cols + 1))
-
-
 
     def close(self):
         pass
@@ -243,8 +272,7 @@ class TetrisEnv(gym.Env):
         reward function
         """
         # TODO: change it to your own choice of rewards
-        reward = self.cleared_current_turn
-        return reward
+        return 0.0
 
     def get_actions(self):
         """
@@ -267,12 +295,16 @@ if __name__ == "__main__":
     # np.random.seed(1)
     env = TetrisEnv()
     env.reset()
-    env.render()
+    # Possible piece: 0, 1, 2, 3, 4, 5, 6
+    # for i in range(env.n_pieces):
+    #     print("When piece is {}".format(i))
+    #     print(env.legal_moves[i])
+    # env.render()
 
-    for _ in range(50):
-        actions = env.get_actions()
-        action = actions[np.random.randint(len(actions))]
-        state, reward, done, _ = env.step(action)
-        if done:
-            break
-        env.render()
+    # for _ in range(50):
+    #     actions = env.get_actions()
+    #     action = actions[np.random.randint(len(actions))]
+    #     state, reward, done, _ = env.step(action)
+    #     if done:
+    #         break
+    #     env.render()
