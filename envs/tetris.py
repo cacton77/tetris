@@ -164,7 +164,7 @@ class TetrisEnv(gym.Env):
         return self.state.copy()
 
     def render(self, mode='ascii', rot=0, trans=0):
-        print('Rotation = {}'.format(rot))
+        # print('Rotation = {}'.format(rot))
         print('\nThe next piece:')
         if self.state.next_piece == 0:
             if rot == 0: 
@@ -272,7 +272,8 @@ class TetrisEnv(gym.Env):
         reward function
         """
         # TODO: change it to your own choice of rewards
-        return 0.0
+        r = self.cleared_current_turn
+        return r
 
     def get_actions(self):
         """

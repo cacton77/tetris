@@ -6,7 +6,7 @@ from math import pi, cos
 from mpl_toolkits import mplot3d
 import matplotlib.pyplot as plt
 
-from utils import action_independent_features
+from utils import features, action_independent_features
 sys.path.insert(0, os.path.abspath("envs"))
 from tetris import TetrisEnv
 
@@ -16,9 +16,14 @@ class Learner:
         self.env.reset()
 
     def learn(self):
-        n = 2 # . . . . . . . . Number of parameters
+        n = 8 # . . . . . . . . Number of parameters
 
         bounds = n*[(-5.12, 5.12)] # . . . . . . . Bounds for parameters
+        x, fx_f, iters = self.nelder_mead(self.tetris_fun, n=n, bounds=bounds, maximize=True, verbose=False)
+        print("Tetris: x = {}, fx = {}, iters = {}".format(x, fx_f, iters))
+
+        return
+
         x, fx_f, iters = self.nelder_mead(self.rastrigin_fun, n=n, bounds=bounds, verbose=True)
         print("Rastrigin : x = {}, iters = {}".format(x, iters))
 
@@ -36,6 +41,34 @@ class Learner:
     # - Rastrigin function
     # - Sphere function
     # __________________________________________________________
+
+    def tetris_fun(self, theta):
+        self.env.reset()
+        fx = 0
+        while True:
+            state = self.env.state.copy()
+            actions = self.env.get_actions()
+            a_min = [0,0]
+            V_min = 10000
+            for a in actions:
+                next_state, reward, done, _ = self.env.step(a)
+                f = features(state, reward, next_state)
+                V = theta.dot(f)
+                if V < V_min:
+                    V_min = V
+                    a_min = a
+                self.env.set_state(state)
+
+            print('#####################################################################')
+            self.env.render()
+            print(f'Features: {f}')
+            print(f'Total reward: {fx}')
+
+            state, reward, done, _ = self.env.step(a_min)
+            fx += reward
+        
+            if done:
+                return fx
 
     def rastrigin_fun(self, x):
         A = 10
@@ -208,23 +241,25 @@ class Player:
 
     def play(self):
         # Manual policy
-        # actions = self.env.get_actions()
-        # for _ in range(50):
-        #     actions = self.env.get_actions()
-        #     print("Actions:")
-        #     print(actions)
-        #     rot = int(input("Rotation: "))
-        #     self.env.render(rot=rot)
-        #     mov = int(input("Movement: "))
-        #     action = [rot, mov]
-        #     state, reward, done, _ = self.env.step(action)
-        #     print("Reward: {}".format(reward))
-        #     print("Next state: ")
-        #     print(state.field)
-        #     if done:
-        #         print("Game Over!")
-        #         break
-        #     self.env.render()
+        actions = self.env.get_actions()
+        for _ in range(50):
+            a_indep = action_independent_features(self.env.state.field.copy())
+            print(f'Action-independent features: {a_indep}')
+            actions = self.env.get_actions()
+            print("Actions:")
+            print(actions)
+            rot = int(input("Rotation: "))
+            self.env.render(rot=rot)
+            mov = int(input("Movement: "))
+            action = [rot, mov]
+            state, reward, done, _ = self.env.step(action)
+            print("Reward: {}".format(reward))
+            print("Next state: ")
+            print(state.field)
+            if done:
+                print("Game Over!")
+                break
+            self.env.render()
 
         # Random policy
         for _ in range(50):
@@ -245,8 +280,8 @@ class Player:
             self.env.render()
 
 if __name__ == "__main__":
-    agent = Player()
-    agent.play()
-    # learner = Learner()
-    # learner.learn()
+    # agent = Player()
+    # agent.play()
+    learner = Learner()
+    learner.learn()
     
