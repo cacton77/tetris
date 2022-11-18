@@ -136,7 +136,7 @@ class Learner:
                 fx[i] = f(x[i,:])
 
             # std_dev = np.std(fx)
-            std_dev = np.std(x, axis=0).sum()
+            std_dev = np.abs(np.std(x, axis=0)).sum()
 
             if std_dev < tol:
                 x_f = np.mean(x, axis=0)
