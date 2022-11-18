@@ -13,26 +13,27 @@ from tetris import TetrisEnv
 
 class Learner:
     def __init__(self):
-        self.env = TetrisEnv()
+        self.env = TetrisEnv(training=True)
         self.env.reset()
 
     def learn(self):
         n = 8 # . . . . . . . . Number of parameters
 
-        bounds = n*[(-512, 512)] # . . . . . . . Bounds for parameters
-        b1 = (0, 100)
-        b2 = (-100, 0)
-        b3 = (-100, 100)
-        b4 = (-100, 100)
-        b5 = (-100, 100)
-        b6 = (-100, 10)
-        b7 = (0, 100)
-        b8 = (0, 100)
-        x, fx_f, iters = self.nelder_mead(self.tetris_fun, n=n, bounds=bounds, maximize=True, verbose=True)
+        b1 = (0., 1.)
+        b2 = (-1., -0.75)
+        b3 = (0., 1.)
+        b4 = (0., 1.)
+        b5 = (0., 1.)
+        b6 = (0., 1.)
+        b7 = (0., 1.)
+        b8 = (0., 1.)
+        bounds = [b1, b2, b3, b4, b5, b6, b7, b8]
+        x, fx_f, iters = self.nelder_mead(self.tetris_fun, n=n, bounds=bounds, maximize=True, normalize=True, verbose=True)
         print("Tetris: x = {}, fx = {}, iters = {}".format(x, fx_f, iters))
 
         return
 
+        bounds = n*[(-512, 512)] # . . . . . . . Bounds for parameters
         x, fx_f, iters = self.nelder_mead(self.rastrigin_fun, n=n, bounds=bounds, maximize=True, verbose=True)
         print("Rastrigin : x = {}, iters = {}".format(x, iters))
 
@@ -53,43 +54,52 @@ class Learner:
 
     def tetris_fun(self, theta, verbose=False):
         self.env.reset()
-        fx = 0
-        while True:
-            state = self.env.state.copy()
-            actions = self.env.get_actions()
-            Q = len(actions)*[0]
-            fs = np.zeros((len(actions),8))
-            # print(actions)
-            for i in range(len(actions)):
-                a_i = actions[i]
-                next_state, reward, done, _ = self.env.step(a_i)
-                fs[i,:] = features(state, reward, next_state, verbose=False)
-                Q[i] = theta.dot(fs[i,:])
-                self.env.set_state(state)
-            # print(fs)
-            # print(Q)
-            V_min = np.min(Q)
-            i_min = np.argmin(Q)
-            a_min = actions[i_min]
+        samples = 20
+        fxs = samples*[0]
+        for s in range(samples):
+            fx = 0
+            while True:
+                state = self.env.state.copy()
+                actions = self.env.get_actions()
+                Q = len(actions)*[0]
+                fs = np.zeros((len(actions),8))
+                # print(actions)
+                for i in range(len(actions)):
+                    a_i = actions[i]
+                    next_state, reward, done, _ = self.env.step(a_i)
+                    fs[i,:] = features(state, reward, next_state, verbose=False)
+                    Q[i] = theta.dot(fs[i,:])
+                    self.env.set_state(state)
+                V_min = np.min(Q)
+                i_min = np.argmin(Q)
+                a_min = actions[i_min]
 
-            # if verbose:
-            #     print('#####################################################################')
-            #     self.env.render()
-            #     print(f'Features: {fs[i_min,:]}')
+                # if verbose:
+                #     print('#####################################################################')
+                #     self.env.render()
+                #     print(f'Features: {fs[i_min,:]}')
 
-            state, reward, done, _ = self.env.step(a_min)
-            fx += reward
-        
-            if done:
-                if verbose: 
-                    print("+==========================================+")
-                    print("+                  TETRIS                  +")
-                    print("+==========================================+\n")
-                    print(f'Weights: {theta}')
-                    self.env.render()
-                    print(f'\nLines cleared: {state.cleared}')
-                    print(f'Score: {fx}\n')
-                return fx
+                state, reward, done, _ = self.env.step(a_min)
+                fx += reward
+            
+                if done:
+                    if verbose: 
+                        print("+==========================================+")
+                        print("+                  TETRIS                  +")
+                        print("+==========================================+\n")
+                        print(f'Weights: {theta}')
+                        self.env.render()
+                        print(f'\nLines cleared: {state.cleared}')
+                        print(f'Score: {fx}\n')
+                    self.env.reset()
+                    fxs[s] = fx
+                    break
+        fx_avg = np.mean(fxs)
+        if verbose: 
+            print(f'High score: {np.max(fxs)}')
+            print(f'Average Score: {fx_avg}')
+        return fx_avg
+            
 
     def rastrigin_fun(self, x):
         A = 10
@@ -118,7 +128,7 @@ class Learner:
     # - Nelder-Mead (Simplex Search)
     # __________________________________________________________
 
-    def nelder_mead(self, f, n, bounds, tol=1e-12, maximize=False, verbose=False):
+    def nelder_mead(self, f, n, bounds, tol=1e-12, maximize=False, normalize=False, verbose=False):
         # Initialize simplex
         x = np.zeros((n+1, n))
         for i in range(n):
@@ -130,9 +140,10 @@ class Learner:
         fx_f = None
 
         while True:
-                        # 1. Evaluate vertices of simplex
+            # 1. Evaluate vertices of simplex
             fx = np.zeros((n+1,))
             for i in range(n+1):
+                if normalize: x[i,:] = x[i,:]/np.linalg.norm(x[i,:])
                 fx[i] = f(x[i,:])
 
             # std_dev = np.std(fx)

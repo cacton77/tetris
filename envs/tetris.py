@@ -37,10 +37,11 @@ class TetrisState:
 class TetrisEnv(gym.Env):
     metadata = {'render.modes': ['ascii']}
 
-    def __init__(self):
+    def __init__(self, training=False):
         self.n_cols = 10
         self.n_rows = 21
         self.n_pieces = 7
+        self.training = training
 
         # the next several lists define the piece vocabulary in detail
         # width of the pieces [piece ID][orientation]
@@ -264,7 +265,17 @@ class TetrisEnv(gym.Env):
         """
         return an random integer 0-6
         """
-        return np.random.randint(self.n_pieces)
+        if self.training:
+            i = np.random.randint(self.n_pieces + 4)
+            if i < self.n_pieces:
+                return i
+            elif i == 7 or i == 8:
+                return 5
+            else:
+                return 6
+            pass
+        else:
+            return np.random.randint(self.n_pieces)
 
     def _get_reward(self):
         """
