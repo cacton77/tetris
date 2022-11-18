@@ -52,34 +52,30 @@ class Learner:
     # - Sphere function
     # __________________________________________________________
 
-    def tetris_fun(self, theta, verbose=False):
-        self.env.reset()
+    def tetris_fun(self, theta, training=True, verbose=False):
+        env = TetrisEnv(training=training)
+        env.reset()
         samples = 20
         fxs = samples*[0]
         for s in range(samples):
             fx = 0
             while True:
-                state = self.env.state.copy()
-                actions = self.env.get_actions()
+                state = env.state.copy()
+                actions = env.get_actions()
                 Q = len(actions)*[0]
                 fs = np.zeros((len(actions),8))
                 # print(actions)
                 for i in range(len(actions)):
                     a_i = actions[i]
-                    next_state, reward, done, _ = self.env.step(a_i)
+                    next_state, reward, done, _ = env.step(a_i)
                     fs[i,:] = features(state, reward, next_state, verbose=False)
                     Q[i] = theta.dot(fs[i,:])
-                    self.env.set_state(state)
+                    env.set_state(state)
                 V_min = np.min(Q)
                 i_min = np.argmin(Q)
                 a_min = actions[i_min]
 
-                # if verbose:
-                #     print('#####################################################################')
-                #     self.env.render()
-                #     print(f'Features: {fs[i_min,:]}')
-
-                state, reward, done, _ = self.env.step(a_min)
+                state, reward, done, _ = env.step(a_min)
                 fx += reward
             
                 if done:
@@ -88,10 +84,10 @@ class Learner:
                         print("+                  TETRIS                  +")
                         print("+==========================================+\n")
                         print(f'Weights: {theta}')
-                        self.env.render()
+                        env.render()
                         print(f'\nLines cleared: {state.cleared}')
                         print(f'Score: {fx}\n')
-                    self.env.reset()
+                    env.reset()
                     fxs[s] = fx
                     break
         fx_avg = np.mean(fxs)
@@ -128,7 +124,7 @@ class Learner:
     # - Nelder-Mead (Simplex Search)
     # __________________________________________________________
 
-    def nelder_mead(self, f, n, bounds, tol=1e-12, maximize=False, normalize=False, verbose=False):
+    def nelder_mead(self, f, n, bounds, tol=1e-12, maximize=False, normalize=False, training=False, verbose=False):
         # Initialize simplex
         x = np.zeros((n+1, n))
         for i in range(n):
@@ -179,12 +175,17 @@ class Learner:
 
             # Evaluate best vertex
             x_1 = x[order[0],:]
-            fx_1 = f(x[order[0],:],verbose=verbose)
+            fx_1 = fx[order[0]]
+            if verbose: 
+                if training:
+                    f(x[order[0],:], training=False, verbose=verbose) # if verbose, show simulation
+                else:
+                    f(x[order[0],:], verbose=verbose) # if verbose, show simulation
 
             # Find worst vertex
             h = order[n]
             x_h = x[h,:]
-            fx_h = f(x_h)
+            fx_h = fx[h]
 
             # 2. Calculate centroid of other vertices
             x_sum = np.sum(x, axis=0)

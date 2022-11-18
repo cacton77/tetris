@@ -52,8 +52,6 @@ def action_independent_features(state, verbose=False):
     delta_row = (bordered_field[:-1] - bordered_field[1:])
     delta_column = (bordered_field[:, :-1] - bordered_field[:,  1:])
     
-
-
     #   f6 - f8: Determine wells and holes 
     r, c = np.nonzero(field)
     heights = np.array([100] + [np.max(r, where=(c == i), initial=-1) for i in range(10)] + [100])
@@ -114,7 +112,7 @@ if __name__=="__main__":
         state_post, reward, done, _ = env.step(action)
 
         env.render()
-        fx = features(state_pre, reward, state_post)
+        fx = features(state_pre, reward, state_post, verbose=True)
         print(f'features: {fx}')
 
         if fx[1] > 0: break
