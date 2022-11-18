@@ -5,12 +5,12 @@ from scipy.signal import find_peaks
 sys.path.insert(0, os.path.abspath("envs"))
 from tetris import TetrisEnv, TetrisState
 
-def features(state, reward, next_state):
-    f1, f2 = action_dependent_features(next_state, reward) 
-    f3, f4, f5, f6, f7, f8 = action_independent_features(state)
+def features(state, reward, next_state, verbose=False):
+    f1, f2 = action_dependent_features(state, reward, next_state, verbose) 
+    f3, f4, f5, f6, f7, f8 = action_independent_features(next_state, verbose)
     return np.array([f1, f2, f3, f4, f5, f6, f7, f8])
 
-def action_dependent_features(state, reward, verbose=False):
+def action_dependent_features(state, reward, next_state, verbose=False):
     f1 = 0
     n_rows, n_cols = state.field.shape
     for i in range(n_rows):
@@ -18,7 +18,7 @@ def action_dependent_features(state, reward, verbose=False):
             break
         f1 += 1
 
-    f2 = (4 - (state.field == state.turn).sum())*reward
+    f2 = (4 - (state.field == state.turn).sum())*(next_state.cleared - state.cleared)
             
     if verbose:
         print("Action-dependent features:")
