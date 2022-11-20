@@ -1,0 +1,107 @@
+\documentclass[12pt,letterpaper]{article}
+\usepackage{fullpage}
+\usepackage[top=2cm, bottom=4.5cm, left=2cm, right=2cm]{geometry}
+\usepackage{amsmath,amsthm,amsfonts,amssymb,amscd}
+\usepackage{lastpage}
+\usepackage{enumerate}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{mathrsfs}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\graphicspath{{images/}}
+\usepackage{subcaption}
+\usepackage{amsmath}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{empheq}
+\usepackage{blindtext}
+\usepackage[makeroom]{cancel}
+%\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode}
+\documentclass{article}% or something else
+\usepackage{pdfpages}
+\usepackage{subfiles} % Best loaded last in preamble
+
+\hypersetup{%
+  colorlinks=true,
+  linkcolor=blue,
+  linkbordercolor={0 0 1}
+}
+ 
+\renewcommand\lstlistingname{Algorithm}
+\renewcommand\lstlistlistingname{Algorithms}
+\def\lstlistingautorefname{Alg.}
+
+\lstdefinestyle{Python}{
+    language        = Python,
+    frame           = lines, 
+    basicstyle      = \footnotesize,
+    keywordstyle    = \color{blue},
+    stringstyle     = \color{green},
+    commentstyle    = \color{red}\ttfamily
+}
+
+\setlength{\parindent}{0.0in}
+\setlength{\parskip}{0.05in}
+
+% Edit these as appropriate
+\newcommand\course{ME579}
+\newcommand\hwnumber{HW 3}                  % <-- homework number
+\newcommand\NetIDa{Colin Acton, Win Khoo, Rishi Jha}           % <-- NetID of person #1
+\newcommand\duedate{}
+
+
+% Common commands
+\newcommand{\Laplace}[1]{\mathcal{L}\{#1\}}
+\newcommand{\LaplaceInv}[1]{\mathcal{L}^{-1}\{#1\}}
+\newcommand{\Z}[1]{\mathcal{Z}\{#1\}}
+\newcommand{\ZInv}[1]{\mathcal{Z}^{-1}\{#1\}}
+\newcommand\goesto{\rightarrow}
+\newcommand\xvec{\textbf{x}}
+\newcommand\dxvec{\dot{\textbf{x}}}
+\newcommand\ddxvec{\ddot{\textbf{x}}}
+\newcommand\tvec{\textbf{t}}
+\newcommand\A{\textbf{A}}
+\newcommand\B{\textbf{B}}
+\newcommand\C{\textbf{C}}
+\newcommand\D{\textbf{D}}
+\newcommand\I{\textbf{I}}
+\newcommand\T{\textbf{T}}
+\newcommand\LambdaMat{\mathbf{\Lambda}}
+\newcommand\Adj{\text{Adj}}
+\newcommand\N{\textbf{N}}
+\newcommand\J{\textbf{J}}
+\newcommand\Q{\textbf{Q}}
+
+\pagestyle{fancyplain}
+\headheight 35pt
+\lhead{\NetIDa}
+\chead{\textbf{\Large Homework 3}}
+\rhead{\course \\ \duedate}
+\lfoot{}
+\cfoot{}
+\rfoot{\small\thepage}
+\headsep 1.5em
+
+\begin{document}
+
+\section{Related Work}
+Briefly summarize some approaches that have been tried in the literature [1]. This does not have to be comprehensive but is intended to help you think of different strategies. Since training your models can be quite time-consuming. We encourage you to think through different approaches before settling on your final algorithm.
+
+\section{Cost Function}
+Describe what you used as a cost function and why.
+
+\section{Rewards}
+Provide concrete definitions of your rewards, and include some motivation for why you picked them.
+
+\section{State Representation}
+Describe how you represent the state. If your algorithm computes features from states, clearly define them and provide motivation for why you picked them.  
+
+\section{Approach}
+Clearly describe your approach and the algorithm you used. Note that you do not necessarily have to use RL to solve this problem (e.g. you can use a variant of the cross-entropy method.)
+
+\section{Evaluation}
+Describe the performance of your agent, and make sure to include maximum and average lines cleared over 20 games.
+
+\end{document}
