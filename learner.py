@@ -38,9 +38,9 @@ class Learner:
                                                    bounds=bounds, 
                                                    samples=25, 
                                                    function_samples=25,
-                                                   N_top=5, 
+                                                   N_top=4, 
                                                    noise=DECREASING_NOISE, 
-                                                   maximize=True, normalize=False, verbose=True, checkpoints=True, load_save_state=True)
+                                                   maximize=True, normalize=True, verbose=True, checkpoints=True, load_save_state=True)
         print(x)
         return
         x, fx_f, iters = self.nelder_mead(self.tetris_fun, n=n, bounds=bounds, maximize=True, normalize=True, verbose=True)
@@ -67,7 +67,7 @@ class Learner:
     # - Sphere function
     # __________________________________________________________
 
-    def tetris_fun(self, theta, samples=25, training=True, verbose=False):
+    def tetris_fun(self, theta, samples=20, training=True, verbose=False):
         env = TetrisEnv(training=training)
         env.reset()
         fxs = samples*[0]
@@ -156,10 +156,10 @@ class Learner:
                 iters = save_state['last_iters'] + 1
                 mu = np.array(save_state[str(iters - 1)]['mu'])
                 sigma = np.array(save_state[str(iters - 1)]['sigma'])
-
-        for i in range(n):
-            mu[i] = (bounds[i][0] + bounds[i][1])/2
-            sigma[i] = (bounds[i][0] - bounds[i][1])/2
+        else:
+            for i in range(n):
+                mu[i] = (bounds[i][0] + bounds[i][1])/2
+                sigma[i] = (bounds[i][0] - bounds[i][1])/4
 
         x = np.zeros((samples, n))
         fx = np.zeros((samples,))
@@ -189,7 +189,7 @@ class Learner:
                 if noise == NO_NOISE:
                     sigma[i] = np.sqrt(sigma2)
                 elif noise == DECREASING_NOISE:
-                    sigma[i] = np.sqrt(sigma2 + max(5 - iters/10, 0))
+                    sigma[i] = np.sqrt(sigma2 + max(0.05 - iters/1000, 0))
                 else:
                     sigma[i] = np.sqrt(sigma2 + noise)
                     
@@ -207,8 +207,8 @@ class Learner:
 
             # Evaluate best vertex
             if verbose: 
-                print(f'Weights = {mu}')
-                print(f'Iteration = {iters}, Deviation = {np.abs(sigma).sum()}, Mean elite score = {fx_top.mean()}')
+                print(f'Iteration = {iters}, Deviation = {sigma.mean()}, Mean elite score = {fx_top.mean()}')
+                print(f'Mean Elite Weights = {mu}')
             
             if iters >= max_iters or np.abs(sigma).sum() < tol:
                 break
