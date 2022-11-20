@@ -135,6 +135,7 @@ class Learner:
 
     # __________________________________________________________
     # OPTIMIZATION FUNCTIONS
+    # - Cross-Entropy Method
     # - Nelder-Mead (Simplex Search)
     # __________________________________________________________
 
