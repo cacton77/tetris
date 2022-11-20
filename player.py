@@ -60,6 +60,7 @@ class Player:
                 self.env.render()
                 fx += reward
                 print(f'Score = {fx}')
+                print(f'Lines Cleared = {state.cleared}')
             
                 if done:
                     if verbose: 
