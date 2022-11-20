@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 import sys, os, time
+import json
+import random
 import numpy as np
 from operator import xor
 from math import pi, cos
@@ -10,6 +12,9 @@ from utils import features, action_independent_features
 sys.path.insert(0, os.path.abspath("envs"))
 from tetris import TetrisEnv
 
+NO_NOISE = 0
+CONSTANT_NOISE = 1
+DECREASING_NOISE = 2
 
 class Learner:
     def __init__(self):
@@ -28,6 +33,16 @@ class Learner:
         b7 = (0., 1.)
         b8 = (0., 1.)
         bounds = [b1, b2, b3, b4, b5, b6, b7, b8]
+        x, fx_f, iters = self.cross_entropy_method(self.tetris_fun, 
+                                                   n=n, 
+                                                   bounds=bounds, 
+                                                   samples=25, 
+                                                   function_samples=25,
+                                                   N_top=5, 
+                                                   noise=DECREASING_NOISE, 
+                                                   maximize=True, normalize=False, verbose=True, checkpoints=True, load_save_state=True)
+        print(x)
+        return
         x, fx_f, iters = self.nelder_mead(self.tetris_fun, n=n, bounds=bounds, maximize=True, normalize=True, verbose=True)
         print("Tetris: x = {}, fx = {}, iters = {}".format(x, fx_f, iters))
 
@@ -52,10 +67,9 @@ class Learner:
     # - Sphere function
     # __________________________________________________________
 
-    def tetris_fun(self, theta, training=True, verbose=False):
+    def tetris_fun(self, theta, samples=25, training=True, verbose=False):
         env = TetrisEnv(training=training)
         env.reset()
-        samples = 20
         fxs = samples*[0]
         for s in range(samples):
             fx = 0
@@ -97,32 +111,114 @@ class Learner:
         return fx_avg
             
 
-    def rastrigin_fun(self, x):
+    def rastrigin_fun(self, x, samples=1, verbose=False):
         A = 10
         n = len(x)
         fx = A*n
         for i in range(n):
             fx += x[i]**2 - A*np.cos(2*pi*x[i])
-        return -fx
+        return fx
 
-    def sphere_fun(self, x):
+    def sphere_fun(self, x, samples=1, verbose=False):
         n = len(x)
         fx = 0
         for i in range(n):
             fx += x[i]**2
-        return -fx
+        return fx
 
-    def rosenbrock_fun(self, x):
+    def rosenbrock_fun(self, x, samples=1, verbose=False):
         n = len(x)
         fx = 0
         for i in range(n-1):
             fx += 100*(x[i+1] - x[i]**2)**2 + (1 - x[i])**2
-        return -fx
+        return fx
 
     # __________________________________________________________
     # OPTIMIZATION FUNCTIONS
     # - Nelder-Mead (Simplex Search)
     # __________________________________________________________
+
+    def cross_entropy_method(self, f, n, bounds, tol=1e-20, samples=25, function_samples=1, N_top=5, noise=NO_NOISE, 
+                             maximize=False, normalize=False, training=False, verbose=False, checkpoints=False, load_save_state=False):
+        max_iters = 1000
+
+        save_state = {}
+        iters = 0
+
+        # gaussian means
+        mu = np.zeros((n,))
+        sigma = np.zeros((n,))
+
+        # Load CEM save state from json file
+        if load_save_state and os.path.exists('./cem_save_state.json'):
+            with open('./cem_save_state.json') as of:
+                save_state = json.load(of)
+                iters = save_state['last_iters'] + 1
+                mu = np.array(save_state[str(iters - 1)]['mu'])
+                sigma = np.array(save_state[str(iters - 1)]['sigma'])
+
+        for i in range(n):
+            mu[i] = (bounds[i][0] + bounds[i][1])/2
+            sigma[i] = (bounds[i][0] - bounds[i][1])/2
+
+        x = np.zeros((samples, n))
+        fx = np.zeros((samples,))
+
+        while True:
+
+            for s in range(samples):
+                for i in range(n):
+                    x[s,i] = random.gauss(mu[i], sigma[i])
+                if normalize: x[s,:] = x[s,:]/np.linalg.norm(x[s,:])
+                fx[s] = f(x[s], samples=function_samples)
+
+            # Order according to values at vertices
+            order = np.argsort(fx) # indices sorted lowest to highest
+            if maximize:
+                order = np.flip(order)
+            
+            x_top = np.zeros((N_top, n))
+            fx_top = np.zeros((N_top,))
+            for i in range(N_top):
+                x_top[i] = x[order[i]]
+                fx_top[i] = fx[order[i]]
+                
+            for i in range(n):
+                mu[i] = np.mean(x_top[:,i])
+                sigma2 = np.var(x_top[:,i])
+                if noise == NO_NOISE:
+                    sigma[i] = np.sqrt(sigma2)
+                elif noise == DECREASING_NOISE:
+                    sigma[i] = np.sqrt(sigma2 + max(5 - iters/10, 0))
+                else:
+                    sigma[i] = np.sqrt(sigma2 + noise)
+                    
+            # Save CEM progress
+            if checkpoints:
+                save_state['last_iters'] = iters
+                save_state[str(iters)] = {
+                    'mu': mu.tolist(),
+                    'sigma': sigma.tolist(),
+                    'fx_top': fx_top.tolist()
+                }
+
+                with open('cem_save_state.json', 'w') as of:
+                    json.dump(save_state, of)
+
+            # Evaluate best vertex
+            if verbose: 
+                print(f'Weights = {mu}')
+                print(f'Iteration = {iters}, Deviation = {np.abs(sigma).sum()}, Mean elite score = {fx_top.mean()}')
+            
+            if iters >= max_iters or np.abs(sigma).sum() < tol:
+                break
+            
+            iters += 1
+
+        x_f = mu # Final weights
+        fx_f = f(x_f) # Final average score
+
+        return x_f, fx_f, iters
 
     def nelder_mead(self, f, n, bounds, tol=1e-12, maximize=False, normalize=False, training=False, verbose=False):
         # Initialize simplex

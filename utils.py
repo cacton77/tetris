@@ -13,8 +13,9 @@ def features(state, reward, next_state, verbose=False):
 def action_dependent_features(state, reward, next_state, verbose=False):
     f1 = 0
     n_rows, n_cols = state.field.shape
+    field_diff = next_state.field.copy() - state.field.copy()
     for i in range(n_rows):
-        if np.max(state.field[i,:]) == state.turn:
+        if np.abs(field_diff[i,:]).sum() > 0:
             break
         f1 += 1
 
