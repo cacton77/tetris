@@ -59,13 +59,13 @@ for i in range(n):
     # plt.errorbar(iters, mu[:,i], yerr=sigma[:,i]/5)
     w_upper = mu[:,i]+sigma[:,i]
     w_lower = mu[:,i]-sigma[:,i]
-    plt.plot(iters, mu[:,i], lw=2, c=cmap(i/(n-1)), label=f'weight {i+1}')
+    plt.plot(iters, mu[:,i], lw=2, marker='s', c=cmap(i/(n-1)), label=f'weight {i+1}')
     plt.fill_between(iters, w_upper, w_lower, color=cmap(i/(n-1)) ,alpha=0.4)
 plt.set_cmap('viridis')
 plt.grid()
 ax.set_xlim(0, last_iters)
 ax.set_xlabel("Iteration")
-ax.legend()
+ax.legend(loc='lower right')
 # ax.legend(['w_1','w_2','w_3','w_4','w_5','w_6','w_7','w_8',])
 
 plt.show()
