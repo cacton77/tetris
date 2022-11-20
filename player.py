@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/self.env python
 import sys, os, time
 import numpy as np
 from operator import xor
@@ -7,59 +7,62 @@ from mpl_toolkits import mplot3d
 import matplotlib.pyplot as plt
 
 from utils import features, action_independent_features
-sys.path.insert(0, os.path.abspath("envs"))
+sys.path.insert(0, os.path.abspath("self.envs"))
 from tetris import TetrisEnv
 
 
 class Player:
     def __init__(self):
-        self.env = TetrisEnv()
+        self.env = TetrisEnv(training=False)
         self.env.reset()
-        self.env.render()
 
-    def play(self):
-        # Manual policy
-        actions = self.env.get_actions()
-        for _ in range(50):
-            a_indep = action_independent_features(self.env.state.field.copy())
-            print(f'Action-independent features: {a_indep}')
-            actions = self.env.get_actions()
-            print("Actions:")
-            print(actions)
-            rot = int(input("Rotation: "))
-            self.env.render(rot=rot)
-            mov = int(input("Movement: "))
-            action = [rot, mov]
-            state, reward, done, _ = self.env.step(action)
-            print("Reward: {}".format(reward))
-            print("Next state: ")
-            print(state.field)
-            if done:
-                print("Game Over!")
-                break
-            self.env.render()
+    def tetris_fun(self, theta, samples=20, training=True, verbose=False):
+        self.env.reset()
+        #self.env.render()
+        fxs = samples*[0]
+        for s in range(samples):
+            fx = 0
+            while True:
+                state = self.env.state.copy()
+                actions = self.env.get_actions()
+                Q = len(actions)*[0]
+                fs = np.zeros((len(actions),8))
+                # print(actions)
+                for i in range(len(actions)):
+                    a_i = actions[i]
+                    next_state, reward, done, _ = self.env.step(a_i)
+                    fs[i,:] = features(state, reward, next_state, verbose=False)
+                    Q[i] = theta.dot(fs[i,:])
+                    self.env.set_state(state)
+                V_min = np.min(Q)
+                i_min = np.argmin(Q)
+                a_min = actions[i_min]
 
-        # Random policy
-        for _ in range(50):
-            actions = self.env.get_actions()
-            action = actions[np.random.randint(len(actions))]
-            state, reward, done, _ = self.env.step(action)
-
-            a_indep = action_independent_features(self.env.state.field.copy())
-
-            print('#####################################################################')
-            print(f'Action-independent features: {a_indep}')
-            print("Next state: ")
-            print(state.field)
-            input()
-        
-            if done:
-                break
-            self.env.render()
+                state, reward, done, _ = self.env.step(a_min)
+                #self.env.render()
+                fx += reward
+                #print(f'Score = {fx}')
+            
+                if done:
+                    if verbose: 
+                        print("+==========================================+")
+                        print("+                  TETRIS                  +")
+                        print("+==========================================+\n")
+                        print(f'Weights: {theta}')
+                        self.env.render()
+                        print(f'\nLines cleared: {state.cleared}')
+                        print(f'Score: {fx}\n')
+                    self.env.reset()
+                    fxs[s] = fx
+                    break
+        fx_avg = np.mean(fxs)
+        if verbose: 
+            print(f'High score: {np.max(fxs)}')
+            print(f'Average Score: {fx_avg}')
+        return fx_avg
 
 if __name__ == "__main__":
-    # agent = Player()
-    # agent.play()
-    learner = Learner()
-    learner.learn()
+    agent = Player()
+    weights = np.array([0.36335872, -0.39474949, 0.36761178, 0.52811635, 0.10330465, 0.11987217, 0.21252479, 0.32646567])
+    agent.tetris_fun(weights, verbose=True)
     

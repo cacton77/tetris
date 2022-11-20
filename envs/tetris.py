@@ -282,7 +282,6 @@ class TetrisEnv(gym.Env):
         reward function
         """
         # TODO: change it to your own choice of rewards
-        # return self.cleared_current_turn
         if self.cleared_current_turn == 4:
             return 800
         else:
