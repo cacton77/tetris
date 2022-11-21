@@ -4,6 +4,7 @@ import json
 import numpy as np
 from operator import xor
 from math import pi, cos
+import time
 from mpl_toolkits import mplot3d
 from matplotlib.animation import FuncAnimation
 import matplotlib.pyplot as plt
@@ -18,7 +19,7 @@ class TetrisPlayer:
         self.env = TetrisEnv(training=False)
         self.env.reset()
 
-        if weights:
+        if weights is not None:
             self.weights = weights
         else:
             save_state = {}
@@ -97,8 +98,34 @@ class TetrisPlayer:
         while not self.done:
             self.step()
         self.end()
-        
+
+
+def run_experiment(filename, iters):
+    of = open(filename)
+    save_state = json.load(of)
+    results = []
+    print("Format: (avg lines, avg score, avg time)")
+    for i in range(len(save_state) - 1):
+        lines_cleared = []
+        scores = []
+        times = []
+        for _ in range(iters):
+            start = time.time()
+            weights = np.array(save_state[str(i)]['mu'])
+            agent = TetrisPlayer(verbose=False, animate=False, weights=weights)
+            agent.play()
+            lines_cleared.append(agent.lines_cleared)
+            scores.append(agent.score)
+            times.append(time.time() - start)
+
+        results.append((np.mean(lines_cleared), np.mean(scores), np.mean(times)))
+        print(f"Results for iteration {i}: {results[-1]}")
+        np.save('results', results)
+
+
 if __name__ == "__main__":
-    agent = TetrisPlayer(verbose=True,animate=False)
-    agent.play()
+    # agent = TetrisPlayer(verbose=False,animate=False)
+    # agent.play()
+    run_experiment('./cem_save_state.json', 10)
     
+
