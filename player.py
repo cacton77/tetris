@@ -14,6 +14,63 @@ from utils import features, action_independent_features
 sys.path.insert(0, os.path.abspath("self.envs"))
 from tetris import TetrisEnv
 
+# pieces: O, I, L, J, T, S, Z
+PIECES = [np.array([
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 1, 1, 0, 0],
+    [0, 0, 1, 1, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0]
+]),
+np.array([
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 1, 1, 1, 1, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0]
+]),
+np.array([
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 1, 0, 0, 0],
+    [0, 0, 1, 0, 0, 0],
+    [0, 0, 1, 1, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0]
+]),
+np.array([
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 1, 0, 0],
+    [0, 0, 0, 1, 0, 0],
+    [0, 0, 1, 1, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0]
+]),
+np.array([
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 1, 0, 0],
+    [0, 0, 1, 1, 0, 0],
+    [0, 0, 0, 1, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0]
+]),
+np.array([
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 1, 0, 0],
+    [0, 0, 1, 1, 0, 0],
+    [0, 0, 1, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0]
+]),
+np.array([
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 1, 0, 0, 0],
+    [0, 0, 1, 1, 0, 0],
+    [0, 0, 0, 1, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0]
+])]
 
 class TetrisPlayer:
     def __init__(self, weights=None, verbose=False, animate=False):
@@ -45,9 +102,21 @@ class TetrisPlayer:
 
         self.animate = animate
         if self.animate:
+            plt.style.use('classic')
             self.cmap = 'plasma'
-            fig = plt.figure()
-            ax = fig.add_subplot(111)
+            # fig = plt.figure()
+            r, c = 2, 4
+            fig, axs = plt.subplots(r,c)
+            axs[0,0].tick_params(left=False, right=False, labelleft=False , labelbottom=False, bottom=False)
+            for i in range(r):
+                for j in range(c):
+                    if i == 0 and j == 0: continue
+                    axs[i,j].tick_params(left=False, right=False, labelleft=False , labelbottom=False, bottom=False)
+                    axs[i,j].set_visible(False)
+            axs[0,0].set_title('Next Piece')
+            self.im_np = axs[0,0].imshow(PIECES[self.env.state.next_piece], vmin=0, vmax=1, cmap=self.cmap, interpolation='none')
+            self.ax = fig.add_subplot(111)
+            self.ax.set_title('TETRIS')
             plt.tick_params(left=False, right=False, labelleft=False , labelbottom=False, bottom=False)
             self.im = plt.imshow(self.env.state.field, vmin=0, vmax=0, cmap=self.cmap, interpolation='none')
             self.score_label = plt.xlabel('Score: 0\nLines Cleared: 0')
@@ -73,22 +142,28 @@ class TetrisPlayer:
         self.lines_cleared = state.cleared
         self.score += reward
 
+        ''' Game state rendering '''
         if self.verbose:
             os.system('cls' if os.name == 'nt' else 'clear')
             self.env.render()
             print(f'Score = {self.score}')
             print(f'Lines Cleared = {self.lines_cleared}')
+        
+        ''' Animation '''
         if self.animate:
-            if done: return 
-            # im = plt.imshow(np.flip(state.field)-np.max(state.field), cmap=self.cmap, interpolation='none')
-            lowest = np.min(state.field[np.nonzero(state.field)])
+            try:
+                lowest = np.min(state.field[np.nonzero(state.field)])
+            except: 
+                lowest = 0
+            self.im_np.set_data(PIECES[state.next_piece])
             self.im.set(clim=(0,state.turn - lowest + 10))
             self.im.set_data(np.flip(state.field - lowest + 10*(state.field!=0)))
             self.score_label.set_text(f'Score: {self.score}\nLines Cleared: {self.lines_cleared}')
+            if self.done: 
+                self.im.set_data(np.flip(state.field - lowest + 10*(state.field!=0)))
+                self.ax.text(1, 6, 'GAME OVER', color='red', fontsize=20)
+                self.end()
             return
-            # return self.im
-            # return self.im
-            # return [self.im]
 
     def end(self):
         if self.verbose: 
@@ -132,7 +207,7 @@ def run_experiment(filename, iters):
 
 
 if __name__ == "__main__":
-    agent = TetrisPlayer(verbose=True,animate=False)
+    agent = TetrisPlayer(verbose=False,animate=True)
     agent.play()
     
 
