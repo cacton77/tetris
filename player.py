@@ -4,6 +4,7 @@ import json
 import numpy as np
 from operator import xor
 from math import pi, cos
+from functools import partial
 from mpl_toolkits import mplot3d
 from matplotlib.animation import FuncAnimation
 import matplotlib.pyplot as plt
@@ -43,9 +44,13 @@ class TetrisPlayer:
 
         self.animate = animate
         if self.animate:
+            self.cmap = 'plasma'
             fig = plt.figure()
-            self.im = plt.imshow(self.env.state.field, cmap='viridis', interpolation='none')
-            anim = FuncAnimation(fig, self.step, frames=10000, interval=1000)
+            ax = fig.add_subplot(111)
+            plt.tick_params(left=False, right=False, labelleft=False , labelbottom=False, bottom=False)
+            self.im = plt.imshow(self.env.state.field, vmin=0, vmax=0, cmap=self.cmap, interpolation='none')
+            self.score_label = plt.xlabel('Score: 0\nLines Cleared: 0')
+            anim = FuncAnimation(fig, self.step, frames=10000, interval=5)
             plt.show()
 
     def step(self, t=0):
@@ -53,7 +58,6 @@ class TetrisPlayer:
         actions = self.env.get_actions()
         Q = len(actions)*[0]
         fs = np.zeros((len(actions),8))
-        # print(actions)
         for i in range(len(actions)):
             a_i = actions[i]
             next_state, reward, done, _ = self.env.step(a_i)
@@ -74,11 +78,16 @@ class TetrisPlayer:
             print(f'Score = {self.score}')
             print(f'Lines Cleared = {self.lines_cleared}')
         if self.animate:
-            self.im.set_data(np.flip(state.field))
-            return [self.im]
-            # return self.ax
-            # plt.imshow(np.flip(state.field, 0), cmap='viridis')
-            plt.show()       
+            if done: return 
+            # im = plt.imshow(np.flip(state.field)-np.max(state.field), cmap=self.cmap, interpolation='none')
+            lowest = np.min(state.field[np.nonzero(state.field)])
+            self.im.set(clim=(0,state.turn - lowest + 10))
+            self.im.set_data(np.flip(state.field - lowest + 10*(state.field!=0)))
+            self.score_label.set_text(f'Score: {self.score}\nLines Cleared: {self.lines_cleared}')
+            return
+            # return self.im
+            # return self.im
+            # return [self.im]
 
     def end(self):
         if self.verbose: 
@@ -93,12 +102,11 @@ class TetrisPlayer:
 
     def play(self):
         self.env.reset()
-
         while not self.done:
             self.step()
         self.end()
         
 if __name__ == "__main__":
-    agent = TetrisPlayer(verbose=True,animate=False)
-    agent.play()
+    agent = TetrisPlayer(verbose=False,animate=True)
+    # agent.play()
     
