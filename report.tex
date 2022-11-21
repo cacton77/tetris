@@ -1,0 +1,112 @@
+\documentclass[12pt,letterpaper]{article}
+\usepackage{fullpage}
+\usepackage[top=2cm, bottom=4.5cm, left=2cm, right=2cm]{geometry}
+\usepackage{amsmath,amsthm,amsfonts,amssymb,amscd}
+\usepackage{lastpage}
+\usepackage{enumerate}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{mathrsfs}
+\usepackage{xcolor}
+\usepackage{graphicx}
+\graphicspath{{images/}}
+\usepackage{subcaption}
+\usepackage{amsmath}
+\usepackage{listings}
+\usepackage{hyperref}
+\usepackage{float}
+\usepackage{empheq}
+\usepackage{blindtext}
+\usepackage[makeroom]{cancel}
+%\usepackage[framed,numbered,autolinebreaks,useliterate]{mcode}
+\documentclass{article}% or something else
+\usepackage{pdfpages}
+\usepackage{subfiles} % Best loaded last in preamble
+
+\hypersetup{%
+  colorlinks=true,
+  linkcolor=blue,
+  linkbordercolor={0 0 1}
+}
+ 
+\renewcommand\lstlistingname{Algorithm}
+\renewcommand\lstlistlistingname{Algorithms}
+\def\lstlistingautorefname{Alg.}
+
+\lstdefinestyle{Python}{
+    language        = Python,
+    frame           = lines, 
+    basicstyle      = \footnotesize,
+    keywordstyle    = \color{blue},
+    stringstyle     = \color{green},
+    commentstyle    = \color{red}\ttfamily
+}
+
+\setlength{\parindent}{0.0in}
+\setlength{\parskip}{0.05in}
+
+% Edit these as appropriate
+\newcommand\course{ME579}
+\newcommand\hwnumber{HW 3}                  % <-- homework number
+\newcommand\NetIDa{Colin Acton, Win Khoo, Rishi Jha}           % <-- NetID of person #1
+\newcommand\duedate{}
+
+
+% Common commands
+\newcommand{\Laplace}[1]{\mathcal{L}\{#1\}}
+\newcommand{\LaplaceInv}[1]{\mathcal{L}^{-1}\{#1\}}
+\newcommand{\Z}[1]{\mathcal{Z}\{#1\}}
+\newcommand{\ZInv}[1]{\mathcal{Z}^{-1}\{#1\}}
+\newcommand\goesto{\rightarrow}
+\newcommand\xvec{\textbf{x}}
+\newcommand\dxvec{\dot{\textbf{x}}}
+\newcommand\ddxvec{\ddot{\textbf{x}}}
+\newcommand\tvec{\textbf{t}}
+\newcommand\A{\textbf{A}}
+\newcommand\B{\textbf{B}}
+\newcommand\C{\textbf{C}}
+\newcommand\D{\textbf{D}}
+\newcommand\I{\textbf{I}}
+\newcommand\T{\textbf{T}}
+\newcommand\LambdaMat{\mathbf{\Lambda}}
+\newcommand\Adj{\text{Adj}}
+\newcommand\N{\textbf{N}}
+\newcommand\J{\textbf{J}}
+\newcommand\Q{\textbf{Q}}
+
+\pagestyle{fancyplain}
+\headheight 35pt
+\lhead{\NetIDa}
+\chead{\textbf{\Large Homework 3}}
+\rhead{\course \\ \duedate}
+\lfoot{}
+\cfoot{}
+\rfoot{\small\thepage}
+\headsep 1.5em
+
+\begin{document}
+
+\section{Related Work}
+\textbf{Briefly summarize some approaches that have been tried in the literature [1]. This does not have to be comprehensive but is intended to help you think of different strategies. Since training your models can be quite time-consuming. We encourage you to think through different approaches before settling on your final algorithm.}
+
+The approaches to training the Tetris discussed in the literature [1] are categorized into four methods, namely hand-tuning, machine learning, optimizing, and the evolution way. Generally speaking, the final goal of all these approaches is to locate the optimal weights for the features that will maximize the total rewards (discussed under the reward section) which hopefully will clear as many lines as possible. A brief discussion of training methods is as the following in the same order mentioned above. The most straightforward way is to have one earn experience from playing the game Tetris and using one's mental judgment to assign the weights for the respective features. On the other hand, machine learning is one way when a set of data is provided for the training to figure out the optimal values of the feature's weights. Meanwhile, reinforcement learning could also be used to obtain the same objective. All in all, figuring out the optimal policy is the key to scoring the game instead of evaluating the value of the game state as value iteration is comparatively more costly than policy iteration which is unreal in practice. The optimal weights of the features can also be found through optimization techniques and evolution strategies to optimize the weights. Without doing excessive experiments and simply judging from the literature [1], the increasing number of used features does not necessarily guarantee better results in obtaining the weight's values. Instead, the design of features that can possibly capture and truly describe the ups and downsides of the actions and consequences of each implemented action. At last, literature 1 implemented the so-called covariance matrix adaptations a.k.a CMA which is an evolutionary approach and is similar to the cross-entropy method. Here, we started with using the Nelder-Mead and then the noisy cross-entropy method, and the details are discussed as follows.
+
+\section{Cost Function}
+\textbf{Describe what you used as a cost function and why.}
+
+
+\section{Rewards}
+\textbf{Provide concrete definitions of your rewards and include some motivation for why you picked them.}
+
+Just as most of us would expect that the most typical way of assigning a reward is by granting one when a line is clear. It seems that there can be quite a few variants of the scoring system according to Tetris's Wiki. For example, a higher reward can be given if one can remove a chunk of lines with a single piece. In some cases, the reward for removing a single line gets higher as the game gets more difficult in terms of the faster dynamics of the piece. But keep in mind that this only works if it was a human being playing the game. In our case, a reward of 800 when 4 lines are removed at once to encourage and train the machine to remove a chunk of lines. Other than this, a 100 reward is granted when a line is removed.
+
+\section{State Representation}
+\textbf{Describe how you represent the state. If your algorithm computes features from states, clearly define them and provide motivation for why you picked them.}  
+
+\section{Approach}
+Clearly describe your approach and the algorithm you used. Note that you do not necessarily have to use RL to solve this problem (e.g. you can use a variant of the cross-entropy method.)
+
+\section{Evaluation}
+Describe the performance of your agent, and make sure to include maximum and average lines cleared over 20 games.
+
+\end{document}

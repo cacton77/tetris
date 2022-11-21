@@ -9,8 +9,11 @@ plt.style.use('classic')
 
 save_state = {}
 
-if os.path.exists('./cem_save_state.json'):
-    with open('./cem_save_state.json') as of:
+file_name = 'cem_save_state_not_norm.json'
+file_name = 'cem_save_state.json'
+
+if os.path.exists(file_name):
+    with open(file_name) as of:
         save_state = json.load(of)
 else:
     sys.exit("No optimization history.")
@@ -38,20 +41,22 @@ for it in range(last_iters + 1):
 
 fig, ax = plt.subplots()
 
+plt.figure(1)
 plt.errorbar(iters, fx_top_mean, yerr=np.std(fx_top, axis=1), marker='s')
 for i in range(N_top):
     plt.scatter(iters, fx_top[:,i], marker='8', s=8)
 plt.title("Average Elite Performance During Training")
 plt.grid()
 ax.set_xlim(0, last_iters)
+ax.set_ylim(0, 1.2*np.max(fx_top_mean))
 ax.set_xlabel("Iteration")
 ax.set_ylabel("Score")
 
-plt.show()
+# plt.show()
 
 # Weight (mu) convergence
 
-fig, ax = plt.subplots()
+fig, ax1 = plt.subplots()
 
 cmap = cm.get_cmap('viridis')
 # cmap = cm.get_cmap('twilight_shifted_r')
@@ -59,13 +64,15 @@ for i in range(n):
     # plt.errorbar(iters, mu[:,i], yerr=sigma[:,i]/5)
     w_upper = mu[:,i]+sigma[:,i]
     w_lower = mu[:,i]-sigma[:,i]
+    plt.figure(2)
     plt.plot(iters, mu[:,i], lw=2, marker='s', c=cmap(i/(n-1)), label=f'weight {i+1}')
     plt.fill_between(iters, w_upper, w_lower, color=cmap(i/(n-1)) ,alpha=0.4)
 plt.set_cmap('viridis')
 plt.grid()
-ax.set_xlim(0, last_iters)
-ax.set_xlabel("Iteration")
-ax.legend(loc='lower right')
+ax1.set_xlim(0, last_iters)
+# ax1.set_ylim(-1, 1)
+ax1.set_xlabel("Iteration")
+ax1.legend(loc='lower right')
 # ax.legend(['w_1','w_2','w_3','w_4','w_5','w_6','w_7','w_8',])
 
 plt.show()
