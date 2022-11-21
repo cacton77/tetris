@@ -4,6 +4,7 @@ import json
 import numpy as np
 from operator import xor
 from math import pi, cos
+from functools import partial
 import time
 from mpl_toolkits import mplot3d
 from matplotlib.animation import FuncAnimation
@@ -13,6 +14,63 @@ from utils import features, action_independent_features
 sys.path.insert(0, os.path.abspath("self.envs"))
 from tetris import TetrisEnv
 
+# pieces: O, I, L, J, T, S, Z
+PIECES = [np.array([
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 1, 1, 0, 0],
+    [0, 0, 1, 1, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0]
+]),
+np.array([
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 1, 1, 1, 1, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0]
+]),
+np.array([
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 1, 0, 0, 0],
+    [0, 0, 1, 0, 0, 0],
+    [0, 0, 1, 1, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0]
+]),
+np.array([
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 1, 0, 0],
+    [0, 0, 0, 1, 0, 0],
+    [0, 0, 1, 1, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0]
+]),
+np.array([
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 1, 0, 0],
+    [0, 0, 1, 1, 0, 0],
+    [0, 0, 0, 1, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0]
+]),
+np.array([
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 1, 0, 0],
+    [0, 0, 1, 1, 0, 0],
+    [0, 0, 1, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0]
+]),
+np.array([
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 1, 0, 0, 0],
+    [0, 0, 1, 1, 0, 0],
+    [0, 0, 0, 1, 0, 0],
+    [0, 0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0, 0]
+])]
 
 class TetrisPlayer:
     def __init__(self, weights=None, verbose=False, animate=False):
@@ -44,9 +102,25 @@ class TetrisPlayer:
 
         self.animate = animate
         if self.animate:
-            fig = plt.figure()
-            self.im = plt.imshow(self.env.state.field, cmap='viridis', interpolation='none')
-            anim = FuncAnimation(fig, self.step, frames=10000, interval=1000)
+            plt.style.use('classic')
+            self.cmap = 'plasma'
+            # fig = plt.figure()
+            r, c = 2, 4
+            fig, axs = plt.subplots(r,c)
+            axs[0,0].tick_params(left=False, right=False, labelleft=False , labelbottom=False, bottom=False)
+            for i in range(r):
+                for j in range(c):
+                    if i == 0 and j == 0: continue
+                    axs[i,j].tick_params(left=False, right=False, labelleft=False , labelbottom=False, bottom=False)
+                    axs[i,j].set_visible(False)
+            axs[0,0].set_title('Next Piece')
+            self.im_np = axs[0,0].imshow(PIECES[self.env.state.next_piece], vmin=0, vmax=1, cmap=self.cmap, interpolation='none')
+            self.ax = fig.add_subplot(111)
+            self.ax.set_title('TETRIS')
+            plt.tick_params(left=False, right=False, labelleft=False , labelbottom=False, bottom=False)
+            self.im = plt.imshow(self.env.state.field, vmin=0, vmax=0, cmap=self.cmap, interpolation='none')
+            self.score_label = plt.xlabel('Score: 0\nLines Cleared: 0')
+            anim = FuncAnimation(fig, self.step, frames=10000, interval=5)
             plt.show()
 
     def step(self, t=0):
@@ -54,7 +128,6 @@ class TetrisPlayer:
         actions = self.env.get_actions()
         Q = len(actions)*[0]
         fs = np.zeros((len(actions),8))
-        # print(actions)
         for i in range(len(actions)):
             a_i = actions[i]
             next_state, reward, done, _ = self.env.step(a_i)
@@ -69,17 +142,28 @@ class TetrisPlayer:
         self.lines_cleared = state.cleared
         self.score += reward
 
+        ''' Game state rendering '''
         if self.verbose:
             os.system('cls' if os.name == 'nt' else 'clear')
             self.env.render()
             print(f'Score = {self.score}')
             print(f'Lines Cleared = {self.lines_cleared}')
+        
+        ''' Animation '''
         if self.animate:
-            self.im.set_data(np.flip(state.field))
-            return [self.im]
-            # return self.ax
-            # plt.imshow(np.flip(state.field, 0), cmap='viridis')
-            plt.show()       
+            try:
+                lowest = np.min(state.field[np.nonzero(state.field)])
+            except: 
+                lowest = 0
+            self.im_np.set_data(PIECES[state.next_piece])
+            self.im.set(clim=(0,state.turn - lowest + 10))
+            self.im.set_data(np.flip(state.field - lowest + 10*(state.field!=0)))
+            self.score_label.set_text(f'Score: {self.score}\nLines Cleared: {self.lines_cleared}')
+            if self.done: 
+                self.im.set_data(np.flip(state.field - lowest + 10*(state.field!=0)))
+                self.ax.text(1, 6, 'GAME OVER', color='red', fontsize=20)
+                self.end()
+            return
 
     def end(self):
         if self.verbose: 
@@ -94,7 +178,6 @@ class TetrisPlayer:
 
     def play(self):
         self.env.reset()
-
         while not self.done:
             self.step()
         self.end()
@@ -124,8 +207,7 @@ def run_experiment(filename, iters):
 
 
 if __name__ == "__main__":
-    # agent = TetrisPlayer(verbose=False,animate=False)
-    # agent.play()
-    run_experiment('./cem_save_state.json', 10)
+    agent = TetrisPlayer(verbose=False,animate=True)
+    agent.play()
     
 
