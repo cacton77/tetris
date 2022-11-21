@@ -94,6 +94,8 @@ The approaches to training the Tetris discussed in the literature [1] are catego
 \section{Cost Function}
 \textbf{Describe what you used as a cost function and why.}
 
+For our cost/value function we decided to use the weighted sum-of-features proposed by Boumaza et al [cite]. Concretely, letting $\{f_i\}_{i=1}^{8}$ represent their feature functions (explained in more detail in the State Representation section), the value of a given state is as follows: $$V_w(s) = \sum_{i=1}^nw_if_i(s)$$
+We found that this formulation had two distinct advantages in 1) simplifying the solution space and 2) adding interpretability as we developed the method. First off, the usage of feature functions allowed us to condense the large space of possible board states into a set of features we deemed important in determining the state of the game. In addition, unlike some more complex neural-network based architectures, it was fast and at each iteration of our weight-optimization algorithm we knew exactly why our model made the decisions it made.
 
 \section{Rewards}
 \textbf{Provide concrete definitions of your rewards and include some motivation for why you picked them.}
@@ -102,6 +104,18 @@ Just as most of us would expect that the most typical way of assigning a reward 
 
 \section{State Representation}
 \textbf{Describe how you represent the state. If your algorithm computes features from states, clearly define them and provide motivation for why you picked them.} 
+
+To represent the game state, we computed (approximations of) the eight features listed in the Boumaza et al., paper [cite]. Each feature describes a certain aspect of the game that we deemed had a positive or negative impact on the game state. In more detail,
+\begin{enumerate}
+    \item $f_1$ (Landing Height): The height at which the current piece lands. In general, the lower a piece lands in Tetris, the better since the game ends when a piece goes too high.
+    \item $f_2$ (Eroded Pieces): The number of cleared rows times the number of cells the current piece contributed to each of the cleared rows. This feature codifies how effective the placement of the current piece will be in terms of rows cleared: the end goal of the model.
+    \item $f_3$ (Row Transitions): Including left and right borders as filled, the number of filled cells either to the right or left of an empty cell. In general it is preferable to have contiguous open space meaning the more filled cells to the left or right of a cleared cell, the worse.
+    \item $f_4$ (Column Transitions): Including the bottom border as filled, the number of filled cells either to the below or above an empty cell. In general it is preferable to have contiguous open space meaning the more filled cells above or below a cleared cell, the worse.
+    \item $f_5$ (Number of Holes): The number of cells with at least one filled cell above (and no clear cells directly above). Holes represent inefficiency in the stacking of pieces since the rows they are on cannot be cleared unless all the rows above are cleared.
+    \item $f_6$ (Cumulative Wells): Defining a well as a local column-height minimum, the total number of cells in all wells. Wells make certain types of pieces hard to place. The easiest placement is on a flat surface (i.e., $f_6(s) = 0$.
+    \item $f_7$ (Hole Depth): The total number of cells above all holes (as defined above). This enumerates the number of rows that need to be cleared to remove an inefficient hole.
+    \item $f_8$ (Row Hole): The number of rows with holes. Any row with a hole represents inefficiency.
+\end{enumerate}
 
 \section{Approach}
 \textbf{Clearly describe your approach and the algorithm you used. Note that you do not necessarily have to use RL to solve this problem (e.g. you can use a variant of the cross-entropy method.)}
