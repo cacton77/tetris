@@ -187,6 +187,7 @@ def run_experiment(filename, iters):
     results = []
     print("Format: (avg lines, avg score, avg time)")
     for i in range(len(save_state) - 1):
+        i = 91
         lines_cleared = []
         scores = []
         times = []
@@ -205,7 +206,8 @@ def run_experiment(filename, iters):
 
 
 if __name__ == "__main__":
-    agent = TetrisPlayer(verbose=False,animate=True)
-    agent.play()
+    run_experiment('cem_save_state.json', 20)
+    # agent = TetrisPlayer(verbose=False,animate=True)
+    # agent.play()
     
 
