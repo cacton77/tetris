@@ -75,4 +75,16 @@ ax1.set_xlabel("Iteration")
 ax1.legend(loc='lower right')
 # ax.legend(['w_1','w_2','w_3','w_4','w_5','w_6','w_7','w_8',])
 
+for i in range(n):
+    it_l = 80
+    w = i
+    w_upper = mu[it_l:-1,w]+sigma[it_l:-1,w]
+    w_lower = mu[it_l:-1,w]-sigma[it_l:-1,w]
+    plt.figure(3 + i)
+    plt.plot(iters[it_l:-1], mu[it_l:-1,w],  lw=2, marker='s', c=cmap(w/(n-1)), label=f'weight {i+1}')
+    plt.fill_between(iters[it_l:-1], w_upper, w_lower, color=cmap(w/(n-1)) ,alpha=0.4)
+    plt.xlabel('Iteration')
+    plt.title(f'Weight {i+1}')
+    plt.grid()
+
 plt.show()

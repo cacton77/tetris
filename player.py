@@ -162,18 +162,16 @@ class TetrisPlayer:
             if self.done: 
                 self.im.set_data(np.flip(state.field - lowest + 10*(state.field!=0)))
                 self.ax.text(1, 6, 'GAME OVER', color='red', fontsize=20)
-                self.end()
             return
 
     def end(self):
-        if self.verbose: 
-            print("+==========================================+")
-            print("+                  TETRIS                  +")
-            print("+==========================================+\n")
-            print(f'Weights: {self.weights}')
-            self.env.render()
-            print(f'\nLines cleared: {self.lines_cleared}')
-            print(f'Score: {self.score}\n')
+        print("+==========================================+")
+        print("+                  TETRIS                  +")
+        print("+==========================================+\n")
+        print(f'Weights: {self.weights}')
+        self.env.render()
+        print(f'\nLines cleared: {self.lines_cleared}')
+        print(f'Score: {self.score}\n')
         self.env.reset()
 
     def play(self):
