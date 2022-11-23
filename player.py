@@ -206,8 +206,8 @@ def run_experiment(filename, iters):
 
 
 if __name__ == "__main__":
-    run_experiment('cem_save_state.json', 20)
-    # agent = TetrisPlayer(verbose=False,animate=True)
-    # agent.play()
+    # run_experiment('cem_save_state.json', 20)
+    agent = TetrisPlayer(verbose=False,animate=True)
+    agent.play()
     
 
