@@ -143,7 +143,7 @@ Each game of Tetris can take a very long time to play through, especially once i
 \section{Evaluation}
 Describe the performance of your agent, and make sure to include maximum and average lines cleared over 20 games.
 
-During optimization, the performance of our Tetris AI quickly out-performed the 10,000 line threshold. After approximately 90 iterations of CEM, the method had firmly converged to a final set of weights (values are truncated to 6 decimal places to fit on one line)
+During optimization, the performance of our Tetris AI quickly out-performed the 10,000 line threshold. After approximately 90 iterations of CEM, the method had firmly converged to a final set of weights (values are truncated to 6 decimal places to fit on one line).
 
 \[w = \begin{bmatrix}
     0.340010 &
@@ -155,6 +155,14 @@ During optimization, the performance of our Tetris AI quickly out-performed the 
     0.127938 &
     0.554389 &
   \end{bmatrix}\]
+
+Using these weights to play 20 games, the AI achieved an average score of 3,603,585, an average of 35,343 lines cleared , and a maximum of approximately 200,000 lines cleared. The average compute time for these games was 745.63 seconds, so the results shown in figure 4 were kept to 50 iterations to save time.
+
+The terminal state of each game revealed an interesting issue with the way we formulated reward for the Tetris player. By incentivizing the deletion of 4 lines at a time by doubling the reward for this action (the standard score for Tetris), the player learned to build up many rows with a single, empty column so that when it received the straight, "hero" piece, it could get that sweet 800 point reward. Unfortunately, this didn't prepare our player for the real world where long stretches of time could randomly occur where no hero came to the fore. Ultimately, the player would have to cover that promising obelisk of reward with a crummy piece. Tragically, it wouldn't learn from this mistake, as it would get right back to building another monument to the hero that never showed up.
+
+A way we could deal with this in the future is to add a cost to the creation of these towers of Babylon. Build too high, and ye shall incur a cost.
+
+For a fun, matplotlib visualization of our tetris player, try running player.py.
 
 \begin{figure}[h!]
   \centering
@@ -171,8 +179,10 @@ During optimization, the performance of our Tetris AI quickly out-performed the 
 \begin{figure}[h!]
   \centering
   \includegraphics[width=0.7\linewidth]{performance.png}
-  \caption{Scores of elites performers during training (lines cleared $\approx \text{score}/100$)}
+  \caption{Performance of averaged elite weights under even distribution of pieces.}
 \end{figure}
+
+\newpage
 
 \section{References}
 
